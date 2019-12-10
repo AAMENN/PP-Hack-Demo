@@ -283,7 +283,7 @@ const gatherAmount = async  (request, response) => {
 const gatherInput = async (request, response) => {
   var twiml = new VoiceResponse();
   console.log(request.body.Digits);
-  if(request.body.Digits.length > 1){
+  if(request.body.Digits && request.body.Digits !== "1"){
     Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
       if(error) {
           return console.dir(error);
@@ -307,7 +307,7 @@ const gatherInput = async (request, response) => {
           gather.say('please enter payee phone number.');
         break;
       default:
-        twiml.say("Sorry, I don't understand that choice.").pause();
+        twiml.say("Sorry, I don't understand that choice.");
         twiml.redirect('/gather');
         break;
     }
