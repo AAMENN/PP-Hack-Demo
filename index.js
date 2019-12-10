@@ -270,7 +270,7 @@ const processVerification = async (req, res) => {
       console.log("createVoiceVerificationByUrl: ", jsonResponse.message);
 
       if (jsonResponse.responseCode == "SUCC") {
-        speak(twiml, 'Verification successful!, We will soon integrate with AAman\'s code');
+        speak(twiml, 'Verification successful!, We will soon integrate with Aman\'s code');
         // var authHeader = "AC0efa775fbe7f6ee90a901b3a01fead61:fdff07c00bbd79914e791fdebd1a392c";
         
         // var auth = "Basic " + new Buffer(authHeader).toString("base64");
