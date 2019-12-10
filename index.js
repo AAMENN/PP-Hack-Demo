@@ -41,6 +41,7 @@ express()
   .post('/finalConfirm', (req, res) => finalConfirm(req, res))
   .post('/gatherPhoneNum', (req, res) => gatherPhoneNum(req, res))
   .post('/confirmMsgSay', (req, res) => confirmMsgSay(req, res))
+  .post('/voice', (req, res) => invokeIvr(req, res))
   .listen(PORT, () => console.log(`Listening on port ${ PORT }`))
 
 const callerUserId = async (phone) => {
@@ -360,17 +361,27 @@ const gatherInput = async (request, response) => {
       default:
         numPayTries = numPayTries + 1;
         twiml.say("Sorry, I don't understand that choice.", {voice: "alice"});
-        twiml.redirect('/gatherPhoneNum');
+        twiml.redirect('/voice');
         break;
     }
   } else {
     // If no input was sent, redirect to the /voice route
-    twiml.redirect('/gather');
+    twiml.redirect('/voice');
   }
 
   // Render the response as XML in reply to the webhook request
   response.type('text/xml');
   response.send(twiml.toString());
+}
+
+const invokeIvr = async (req, res) => {
+  var twiml = new VoiceResponse();
+  const gather = twiml.gather(
+    {
+      numDigits: 1,
+      action: '/gather',
+    });
+    gather.say('To Pay your friend, Press 1. . . . To quit, Press 0', {voice: 'alice'});
 }
 
 // Process Verification
@@ -391,13 +402,7 @@ const processVerification = async (req, res) => {
 
       if (jsonResponse.responseCode == "SUCC") {
         speak(twiml, 'Verification successful!');
-        const gather = twiml.gather(
-          {
-            numDigits: 1,
-            action: '/gather',
-          });
-          gather.say('To Pay your friend, Press 1. . . . To quit, Press 0', {voice: 'alice'});
-
+        twiml.redirect("/voice");
         // var authHeader = "AC0efa775fbe7f6ee90a901b3a01fead61:fdff07c00bbd79914e791fdebd1a392c";
         
         // var auth = "Basic " + new Buffer(authHeader).toString("base64");
