@@ -266,21 +266,16 @@ const finalConfirm = async (request, response) => {
 const gatherAmount = async  (request, response) => {
   var twiml = new VoiceResponse();
   if(request.body.Digits === "1"){
-    twiml.gather(
+    const gather = twiml.gather(
       {
-        action: '/gatherAmount',
-      },
-      gatherNode => {
-        gatherNode.say('Enter the amount you want to pay.');
-      }
-    );
+        action: '/gatherAmount'
+      });
+      gather.say('Enter the amount you want to pay.');
   } else if(request.body.Digits !== undefined && request.body.Digits !== "1"){
-    twiml.gather({
-      action: '/finalConfirm',
-    },
-    gatherNode => {
-      gatherNode.say(request.body.Digits+ 'will be transferred, Press 1 to confirm.')
-    })
+    const gather = twiml.gather({
+      action: '/finalConfirm'
+    });
+    gather.say(request.body.Digits+ 'will be transferred, Press 1 to confirm.')
   }
   response.type('text/xml');
   response.send(twiml.toString());
@@ -296,7 +291,7 @@ const gatherInput = async (request, response) => {
       var name = response.body.name;
       const gather = twiml.gather(
         {
-          action: '/gatherAmount',
+          action: '/gatherAmount'
         })
       gather.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
   });
@@ -305,14 +300,11 @@ const gatherInput = async (request, response) => {
   if (request.body.Digits) {
     switch (request.body.Digits) {
       case '1':
-        twiml.gather(
+        const gather = twiml.gather(
           {
             action: '/gather',
-          },
-          gatherNode => {
-            gatherNode.say('please enter payee phone number.');
-          }
-        );
+          });
+          gather.say('please enter payee phone number.');
         break;
       default:
         twiml.say("Sorry, I don't understand that choice.").pause();
