@@ -286,17 +286,16 @@ const gatherPhoneNum = async (request, response) => {
   var twiml = new VoiceResponse();
   console.log(request.body.Digits);
   if(request.body.Digits){
-    Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
-      if(error) {
-          return console.dir(error);
-      }
-      var name = response.body.name;
+    // Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
+    //   if(error) {
+    //       return console.dir(error);
+    //   }
+      var name = "Aman"; //response.body.name;
       const gather = twiml.gather(
         {
           action: '/gatherAmount'
         });
       gather.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
-  });
   }
 }
 const gatherInput = async (request, response) => {
