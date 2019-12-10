@@ -263,6 +263,8 @@ const finalConfirm = async (request, response) => {
   if(request.body.Digits === "1") {
     speak(twiml, 'You will get a confirmation message. Thanks for using our service. Have a nice day');
   }
+  response.type('text/xml');
+  response.send(twiml.toString());
 }
 const gatherAmount = async  (request, response) => {
   var twiml = new VoiceResponse();
@@ -276,7 +278,7 @@ const gatherAmount = async  (request, response) => {
     const gather = twiml.gather({
       action: '/finalConfirm'
     });
-    gather.say(request.body.Digits+ 'will be transferred, Press 1 to confirm.')
+    gather.say(request.body.Digits+ 'will be transferred to Aman, Press 1 to confirm.')
   }
   response.type('text/xml');
   response.send(twiml.toString());
@@ -293,7 +295,7 @@ const gatherPhoneNum = async (request, response) => {
     //   }
     console.log("confirmation for phone number");
       var name = "Aman"; //response.body.name;
-      var msg = 'You have entered number as' + inp + '. Name found is ' + name +' Press 1 to confirm';
+      var msg = 'You have entered number as' + inp + '. Name found is ' + name +'. Press 1 to confirm';
       console.log("Message to say: "+msg);
       const gather = twiml.gather(
         {
@@ -320,7 +322,7 @@ const gatherInput = async (request, response) => {
         break;
       default:
         twiml.say("Sorry, I don't understand that choice.");
-        twiml.redirect('/gather');
+        twiml.redirect('/gatherPhoneNum');
         break;
     }
   } else {
