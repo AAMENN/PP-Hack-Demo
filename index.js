@@ -268,7 +268,7 @@ const verify = async (req, res) => {
 const finalConfirm = async (request, response) => {
   var twiml = new VoiceResponse();
   if(request.body.Digits === '1') {
-    speak(twiml, 'You will get a confirmation message. Thanks for using our service. Have a nice day');
+    speak(twiml, 'Your transaction is successful. You will get a confirmation message. Thanks for using paypal offline service. Have a nice day');
   }
   response.type('text/xml');
   response.send(twiml.toString());
