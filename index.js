@@ -293,8 +293,9 @@ const gatherPhoneNum = async (request, response) => {
     //   if(error) {
     //       return console.dir(error);
     //   }
-    console.log("confirmation for phone number");
-      var name = "Aman"; //response.body.name;
+    const [result, fields] = await pool.query('SELECT name FROM users where phone=\'' + inp + '\'');
+
+      var name = result[0].name;
       var msg = 'You have entered number as' + inp + '. Name found is ' + name +'. Press 1 to confirm';
       console.log("Message to say: "+msg);
       const gather = twiml.gather(
@@ -352,7 +353,7 @@ const processVerification = async (req, res) => {
       console.log("createVoiceVerificationByUrl: ", jsonResponse.message);
 
       if (jsonResponse.responseCode == "SUCC") {
-        speak(twiml, 'Verification successful!, We will soon integrate with Aman\'s code');
+        speak(twiml, 'Verification successful!');
         // speak(twiml, "Press 1 to Pay your friend")
         const gather = twiml.gather(
           {
