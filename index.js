@@ -40,6 +40,7 @@ express()
   .post('/gatherAmount', (req, res) => gatherAmount(req, res))
   .post('/finalConfirm', (req, res) => finalConfirm(req, res))
   .post('/gatherPhoneNum', (req, res) => gatherPhoneNum(req, res))
+  .post('/confirmMsgSay', (req, res) => confirmMsgSay(req, res))
   .listen(PORT, () => console.log(`Listening on port ${ PORT }`))
 
 const callerUserId = async (phone) => {
@@ -266,19 +267,41 @@ const finalConfirm = async (request, response) => {
   response.type('text/xml');
   response.send(twiml.toString());
 }
-const gatherAmount = async  (request, response) => {
+
+const confirmMsgSay = async (request, response) => {
   var twiml = new VoiceResponse();
-  if(request.body.Digits === "1"){
-    const gather = twiml.gather(
-      {
-        action: '/gatherAmount'
-      });
-      gather.say('Enter the amount you want to pay.');
+  numConfirmTries = 1;
+  if(numConfirmTries > 2){
+    speakFailedAttempt(twiml)
   } else if(request.body.Digits){
+    numConfirmTries = numConfirmTries + 1;
     const gather = twiml.gather({
       action: '/finalConfirm'
     });
-    gather.say(request.body.Digits+ 'will be transferred to Aman, Press 1 to confirm.')
+    gather.say(request.body.Digits+ 'will be transferred to ' + name + ', Press 1 to confirm.', {voice: "alice"})
+  } else {
+    // If no input was sent, redirect to the /voice route
+    speak(twiml, 'I did not get any response. Press');
+  }
+  response.type('text/xml');
+  response.send(twiml.toString());
+}
+
+const gatherAmount = async  (request, response) => {
+  var twiml = new VoiceResponse();
+  numAmtTries = 1;
+  if(numAmtTries > 2){
+    speakFailedAttempt(twiml);
+  } else if(request.body.Digits === "1"){
+    numAmtTries = numAmtTries + 1;
+    const gather = twiml.gather(
+      {
+        action: '/confirmMsgSay'
+      });
+      gather.say('Enter the amount you want to pay.');
+  }else {
+    // If no input was sent, redirect to the /voice route
+    twiml.redirect('/gatherAmount');
   }
   response.type('text/xml');
   response.send(twiml.toString());
@@ -288,21 +311,27 @@ const gatherPhoneNum = async (request, response) => {
   var twiml = new VoiceResponse();
   var inp = request.body.Digits;
   console.log(inp);
-  if(inp){
-    // Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
-    //   if(error) {
-    //       return console.dir(error);
-    //   }
-    const [result, fields] = await pool.query('SELECT name FROM users where phone=\'' + inp + '\'');
-
-      var name = result[0].name;
+  numPhoneTries = 1;
+  if(numPhoneTries > 2) {
+    speakFailedAttempt(twiml);
+  }else if(inp){
+      numPhoneTries = numPhoneTries + 1;
+      const [result, fields] = await pool.query('SELECT name FROM users where phone=\'' + inp + '\'');
+      if(result){
+        speak(twiml, "Provided phone number does not exit")
+      }
+      //global variable used in future gather flow
+      name = result[0].name;
       var msg = 'You have entered number as' + inp + '. Name found is ' + name +'. Press 1 to confirm';
       console.log("Message to say: "+msg);
       const gather = twiml.gather(
         {
           action: '/gatherAmount'
         });
-      gather.say(msg);
+      gather.say(msg, {voice: "alice"});
+  } else {
+    // If no input was sent, redirect to the /voice route
+    twiml.redirect('/gatherPhoneNum');
   }
   response.type('text/xml');
   response.send(twiml.toString());
@@ -310,19 +339,27 @@ const gatherPhoneNum = async (request, response) => {
 const gatherInput = async (request, response) => {
   var twiml = new VoiceResponse();
   console.log(request.body.Digits);
-  
-  // If the user entered digits, process their request
-  if (request.body.Digits) {
+  var numPayTries = 0;
+
+  if(numPayTries > 2){
+    speakFailedAttempt(twiml);
+    // If the user entered digits, process their request
+  } else if (request.body.Digits) {
     switch (request.body.Digits) {
       case '1':
+        numPayTries = numPayTries + 1;
         const gather = twiml.gather(
           {
             action: '/gatherPhoneNum',
           });
-          gather.say('please enter payee phone number.');
+          gather.say('please enter payee phone number.', {voice: "alice"});
         break;
+      case '0':
+          speak(twiml, "Thanks for using our service");
+          break;
       default:
-        twiml.say("Sorry, I don't understand that choice.");
+        numPayTries = numPayTries + 1;
+        twiml.say("Sorry, I don't understand that choice.", {voice: "alice"});
         twiml.redirect('/gatherPhoneNum');
         break;
     }
@@ -354,13 +391,13 @@ const processVerification = async (req, res) => {
 
       if (jsonResponse.responseCode == "SUCC") {
         speak(twiml, 'Verification successful!');
-        // speak(twiml, "Press 1 to Pay your friend")
         const gather = twiml.gather(
           {
             numDigits: 1,
             action: '/gather',
           });
-          gather.say('To Pay your friend, press 1.');
+          gather.say('To Pay your friend, Press 1. . . . To quit, Press 0', {voice: 'alice'});
+
         // var authHeader = "AC0efa775fbe7f6ee90a901b3a01fead61:fdff07c00bbd79914e791fdebd1a392c";
         
         // var auth = "Basic " + new Buffer(authHeader).toString("base64");
@@ -438,6 +475,10 @@ function speak(twiml, textToSpeak, contentLanguage = "en-US"){
     voice: "alice",
     language: contentLanguage
   });
+}
+
+function speakFailedAttempt(twiml){
+  speak(twiml, "Too many failed attempts. Please call back and re-authenticate yourself");
 }
 
 function removeSpecialChars(text){
