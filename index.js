@@ -301,6 +301,8 @@ const gatherPhoneNum = async (request, response) => {
         });
       gather.say(msg);
   }
+  response.type('text/xml');
+  response.send(twiml.toString());
 }
 const gatherInput = async (request, response) => {
   var twiml = new VoiceResponse();
