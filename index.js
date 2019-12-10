@@ -257,13 +257,13 @@ const verify = async (req, res) => {
   res.send(twiml.toString());
 };
 
-const finalConfirm = async (req, res) => {
+const finalConfirm = async (request, response) => {
   var twiml = new VoiceResponse();
   if(request.body.Digits === "1") {
     speak(twiml, 'You will get a confirmation message. Thanks for using our service. Have a nice day');
   }
 }
-const gatherAmount = async  (req, res) => {
+const gatherAmount = async  (request, response) => {
   var twiml = new VoiceResponse();
   if(request.body.Digits === "1"){
     twiml.gather(
@@ -285,7 +285,7 @@ const gatherAmount = async  (req, res) => {
   response.type('text/xml');
   response.send(twiml.toString());
 }
-const gatherInput = async (req, res) => {
+const gatherInput = async (request, response) => {
   var twiml = new VoiceResponse();
   console.log(request.body.Digits);
   if(request.body.Digits.length > 1){
