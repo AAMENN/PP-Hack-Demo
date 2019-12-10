@@ -284,18 +284,22 @@ const gatherAmount = async  (request, response) => {
 
 const gatherPhoneNum = async (request, response) => {
   var twiml = new VoiceResponse();
-  console.log(request.body.Digits);
-  if(request.body.Digits){
+  var inp = request.body.Digits;
+  console.log(inp);
+  if(inp){
     // Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
     //   if(error) {
     //       return console.dir(error);
     //   }
+    console.log("confirmation for phone number");
       var name = "Aman"; //response.body.name;
+      var msg = 'You have entered number as' + inp + '. Name found is ' + name +' Press 1 to confirm';
+      console.log("Message to say: "+msg);
       const gather = twiml.gather(
         {
           action: '/gatherAmount'
         });
-      gather.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
+      gather.say(msg);
   }
 }
 const gatherInput = async (request, response) => {
