@@ -258,11 +258,13 @@ const verify = async (req, res) => {
 };
 
 const finalConfirm = async (req, res) => {
+  var twiml = new VoiceResponse();
   if(request.body.Digits === "1") {
     speak(twiml, 'You will get a confirmation message. Thanks for using our service. Have a nice day');
   }
 }
 const gatherAmount = async  (req, res) => {
+  var twiml = new VoiceResponse();
   if(request.body.Digits === "1"){
     twiml.gather(
       {
@@ -280,9 +282,12 @@ const gatherAmount = async  (req, res) => {
       gatherNode.say(request.body.Digits+ 'will be transferred, Press 1 to confirm.')
     })
   }
+  response.type('text/xml');
+  response.send(twiml.toString());
 }
 const gatherInput = async (req, res) => {
-
+  var twiml = new VoiceResponse();
+  console.log(request.body.Digits);
   if(request.body.Digits.length > 1){
     Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
       if(error) {
@@ -346,8 +351,7 @@ const processVerification = async (req, res) => {
       if (jsonResponse.responseCode == "SUCC") {
         speak(twiml, 'Verification successful!, We will soon integrate with Aman\'s code');
         // speak(twiml, "Press 1 to Pay your friend")
-        const twiml2 = new twilio.TwimlResponse();
-        twiml2.gather(
+        twiml.gather(
           {
             numDigits: 1,
             action: '/gather',
