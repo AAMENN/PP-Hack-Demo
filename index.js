@@ -294,14 +294,11 @@ const gatherInput = async (req, res) => {
           return console.dir(error);
       }
       var name = response.body.name;
-      twiml.gather(
+      const gather = twiml.gather(
         {
           action: '/gatherAmount',
-        },
-        gatherNode => {
-          gatherNode.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
-        }
-      );
+        })
+      gather.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
   });
   }
   // If the user entered digits, process their request
@@ -351,15 +348,12 @@ const processVerification = async (req, res) => {
       if (jsonResponse.responseCode == "SUCC") {
         speak(twiml, 'Verification successful!, We will soon integrate with Aman\'s code');
         // speak(twiml, "Press 1 to Pay your friend")
-        twiml.gather(
+        const gather = twiml.gather(
           {
             numDigits: 1,
             action: '/gather',
-          },
-          gatherNode => {
-            gatherNode.say('To Pay your friend, press 1.');
-          }
-        );
+          });
+          gather.say('To Pay your friend, press 1.');
         // var authHeader = "AC0efa775fbe7f6ee90a901b3a01fead61:fdff07c00bbd79914e791fdebd1a392c";
         
         // var auth = "Basic " + new Buffer(authHeader).toString("base64");
