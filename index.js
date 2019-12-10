@@ -95,7 +95,7 @@ const incomingCall = async (req, res) => {
         numDigits: 1,
         timeout: 5
       });
-      speak(gather, "You may now log in, or press one to re enroll");
+      speak(gather, "Please press one to re enroll, Or press any other key to login ");
       twiml.redirect('/enroll_or_verify?digits=TIMEOUT');
       res.type('text/xml');
       res.send(twiml.toString());
@@ -284,7 +284,7 @@ const confirmMsgSay = async (request, response) => {
     const gather = twiml.gather({
       action: '/finalConfirm'
     });
-    gather.say(request.body.Digits+ ' will be transferred to ' + name + ', Press 1 to confirm.', {voice: "alice"})
+    gather.say(request.body.Digits+ ' dollars will be transferred to ' + name + ', Press 1 to confirm.', {voice: "alice"})
   } else {
     // If no input was sent, redirect to the /voice route
     speak(twiml, 'I did not get any response. Press');
