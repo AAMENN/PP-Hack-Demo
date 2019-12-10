@@ -74,7 +74,12 @@ const incomingCall = async (req, res) => {
   console.log(req.body);
   const phone = removeSpecialChars(req.body.From);
   const userId = await callerUserId(phone);
-
+  numTries = 0;
+  numAmtTries = 0;
+  numConfirmTries = 0;
+  numDigits = 0;
+  numPayTries = 0;
+  numPhoneTries = 0;
   // Check for user in VoiceIt db
   await myVoiceIt.checkUserExists({
     userId :userId
@@ -262,7 +267,7 @@ const verify = async (req, res) => {
 
 const finalConfirm = async (request, response) => {
   var twiml = new VoiceResponse();
-  if(request.body.Digits === "1") {
+  if(request.body.Digits === '1') {
     speak(twiml, 'You will get a confirmation message. Thanks for using our service. Have a nice day');
   }
   response.type('text/xml');
@@ -279,7 +284,7 @@ const confirmMsgSay = async (request, response) => {
     const gather = twiml.gather({
       action: '/finalConfirm'
     });
-    gather.say(request.body.Digits+ 'will be transferred to ' + name + ', Press 1 to confirm.', {voice: "alice"})
+    gather.say(request.body.Digits+ ' will be transferred to ' + name + ', Press 1 to confirm.', {voice: "alice"})
   } else {
     // If no input was sent, redirect to the /voice route
     speak(twiml, 'I did not get any response. Press');
@@ -318,7 +323,7 @@ const gatherPhoneNum = async (request, response) => {
   }else if(inp){
       numPhoneTries = numPhoneTries + 1;
       const [result, fields] = await pool.query('SELECT name FROM users where phone=\'' + inp + '\'');
-      if(result){
+      if(!result){
         speak(twiml, "Provided phone number does not exit")
       }
       //global variable used in future gather flow
