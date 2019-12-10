@@ -323,7 +323,7 @@ const gatherPhoneNum = async (request, response) => {
       }
       //global variable used in future gather flow
       name = result[0].name;
-      var msg = 'You have entered number as' + inp + '. Name found is ' + name +'. Press 1 to confirm';
+      var msg = 'You have entered number as ' + inp + '. Name found is ' + name +'. Press 1 to confirm';
       console.log("Message to say: "+msg);
       const gather = twiml.gather(
         {
@@ -374,7 +374,7 @@ const gatherInput = async (request, response) => {
   response.send(twiml.toString());
 }
 
-const invokeIvr = async (req, res) => {
+const invokeIvr = async (req, response) => {
   var twiml = new VoiceResponse();
   const gather = twiml.gather(
     {
@@ -382,6 +382,9 @@ const invokeIvr = async (req, res) => {
       action: '/gather',
     });
     gather.say('To Pay your friend, Press 1. . . . To quit, Press 0', {voice: 'alice'});
+
+  response.type('text/xml');
+  response.send(twiml.toString());
 }
 
 // Process Verification
