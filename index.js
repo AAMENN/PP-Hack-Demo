@@ -39,6 +39,7 @@ express()
   .post('/gather', (req, res) => gatherInput(req, res))
   .post('/gatherAmount', (req, res) => gatherAmount(req, res))
   .post('/finalConfirm', (req, res) => finalConfirm(req, res))
+  .post('/gatherPhoneNum', (req, res) => gatherPhoneNum(req, res))
   .listen(PORT, () => console.log(`Listening on port ${ PORT }`))
 
 const callerUserId = async (phone) => {
@@ -271,7 +272,7 @@ const gatherAmount = async  (request, response) => {
         action: '/gatherAmount'
       });
       gather.say('Enter the amount you want to pay.');
-  } else if(request.body.Digits !== undefined && request.body.Digits !== "1"){
+  } else if(request.body.Digits){
     const gather = twiml.gather({
       action: '/finalConfirm'
     });
@@ -280,10 +281,11 @@ const gatherAmount = async  (request, response) => {
   response.type('text/xml');
   response.send(twiml.toString());
 }
-const gatherInput = async (request, response) => {
+
+const gatherPhoneNum = async (request, response) => {
   var twiml = new VoiceResponse();
   console.log(request.body.Digits);
-  if(request.body.Digits && request.body.Digits !== "1"){
+  if(request.body.Digits){
     Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
       if(error) {
           return console.dir(error);
@@ -292,17 +294,22 @@ const gatherInput = async (request, response) => {
       const gather = twiml.gather(
         {
           action: '/gatherAmount'
-        })
+        });
       gather.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
   });
   }
+}
+const gatherInput = async (request, response) => {
+  var twiml = new VoiceResponse();
+  console.log(request.body.Digits);
+  
   // If the user entered digits, process their request
   if (request.body.Digits) {
     switch (request.body.Digits) {
       case '1':
         const gather = twiml.gather(
           {
-            action: '/gather',
+            action: '/gatherPhoneNum',
           });
           gather.say('please enter payee phone number.');
         break;
