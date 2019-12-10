@@ -11,6 +11,7 @@ const express = require('express')
 const bodyParser = require('body-parser');
 
 var mysql = require('promise-mysql2');
+var Request = require("request");
 
 var pool  = mysql.createPool({
     connectionLimit : 10,
@@ -35,6 +36,9 @@ express()
   .post('/process_enrollment', (req, res) => processEnrollment(req, res))
   .post('/verify', (req, res) => verify(req, res))
   .post('/process_verification', (req, res) => processVerification(req, res))
+  .post('/gather', (req, res) => gatherInput(req, res))
+  .post('/gatherAmount', (req, res) => gatherAmount(req, res))
+  .post('/finalConfirm', (req, res) => finalConfirm(req, res))
   .listen(PORT, () => console.log(`Listening on port ${ PORT }`))
 
 const callerUserId = async (phone) => {
@@ -253,6 +257,76 @@ const verify = async (req, res) => {
   res.send(twiml.toString());
 };
 
+const finalConfirm = async (req, res) => {
+  if(request.body.Digits === "1") {
+    speak(twiml, 'You will get a confirmation message. Thanks for using our service. Have a nice day');
+  }
+}
+const gatherAmount = async  (req, res) => {
+  if(request.body.Digits === "1"){
+    twiml.gather(
+      {
+        action: '/gatherAmount',
+      },
+      gatherNode => {
+        gatherNode.say('Enter the amount you want to pay.');
+      }
+    );
+  } else if(request.body.Digits !== undefined && request.body.Digits !== "1"){
+    twiml.gather({
+      action: '/finalConfirm',
+    },
+    gatherNode => {
+      gatherNode.say(request.body.Digits+ 'will be transferred, Press 1 to confirm.')
+    })
+  }
+}
+const gatherInput = async (req, res) => {
+
+  if(request.body.Digits.length > 1){
+    Request.get("http://13.86.136.109:1880/customer?number="+request.body.Digits, (error, response, body) => {
+      if(error) {
+          return console.dir(error);
+      }
+      var name = response.body.name;
+      twiml.gather(
+        {
+          action: '/gatherAmount',
+        },
+        gatherNode => {
+          gatherNode.say('You have entered number as' + request.body.Digits + '. Name found is ' + name +' Press 1 to confirm');
+        }
+      );
+  });
+  }
+  // If the user entered digits, process their request
+  if (request.body.Digits) {
+    switch (request.body.Digits) {
+      case '1':
+        twiml.gather(
+          {
+            action: '/gather',
+          },
+          gatherNode => {
+            gatherNode.say('please enter payee phone number.');
+          }
+        );
+        break;
+      default:
+        twiml.say("Sorry, I don't understand that choice.").pause();
+        twiml.redirect('/gather');
+        break;
+    }
+  } else {
+    // If no input was sent, redirect to the /voice route
+    twiml.redirect('/gather');
+  }
+
+  // Render the response as XML in reply to the webhook request
+  response.type('text/xml');
+  response.send(twiml.toString());
+}
+
 // Process Verification
 const processVerification = async (req, res) => {
   const userId = await callerUserId(removeSpecialChars(req.body.From));
@@ -271,6 +345,17 @@ const processVerification = async (req, res) => {
 
       if (jsonResponse.responseCode == "SUCC") {
         speak(twiml, 'Verification successful!, We will soon integrate with Aman\'s code');
+        // speak(twiml, "Press 1 to Pay your friend")
+        const twiml2 = new twilio.TwimlResponse();
+        twiml2.gather(
+          {
+            numDigits: 1,
+            action: '/gather',
+          },
+          gatherNode => {
+            gatherNode.say('To Pay your friend, press 1.');
+          }
+        );
         // var authHeader = "AC0efa775fbe7f6ee90a901b3a01fead61:fdff07c00bbd79914e791fdebd1a392c";
         
         // var auth = "Basic " + new Buffer(authHeader).toString("base64");
@@ -296,13 +381,13 @@ const processVerification = async (req, res) => {
         //       throw err;
         //   });
         //return 200;
-        var client = new twilio('AC0efa775fbe7f6ee90a901b3a01fead61', 'fdff07c00bbd79914e791fdebd1a392c');
-        client.calls
-          .create({
-             to: '+12564748756',
-             from: '+19896420652'
-           })
-          .then(call => console.log(call.sid));
+        // var client = new twilio('AC0efa775fbe7f6ee90a901b3a01fead61', 'fdff07c00bbd79914e791fdebd1a392c');
+        // client.calls
+        //   .create({
+        //      to: '+12564748756',
+        //      from: '+19896420652'
+        //    })
+        //   .then(call => console.log(call.sid));
           //twiml.dial('+12564748756');
 
         //Hang up
